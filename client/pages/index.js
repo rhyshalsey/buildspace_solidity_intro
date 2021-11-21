@@ -14,6 +14,11 @@ export default function App() {
   const [numberOfWaves, setNumberOfWaves] = React.useState(0);
   const [favoriteAnimal, setFavoriteAnimal] = React.useState("");
   const [mining, setMining] = React.useState(false);
+  const [favoriteAnimalInputVal, setFavoriteAnimalInputVal] =
+    React.useState(favoriteAnimal);
+  const [favoriteAnimalInputError, setFavoriteAnimalInputError] =
+    React.useState(false);
+  const [submitError, setSubmitError] = React.useState(false);
 
   const [doConnectMetamaskAccount, setDoConnectMetamaskAccount] =
     React.useState(false);
@@ -63,6 +68,7 @@ export default function App() {
         const favoriteAnimal = await wavePortalContract.getFavoriteAnimal();
         console.log("Your favorite animal is: ", favoriteAnimal);
         setFavoriteAnimal(favoriteAnimal);
+        setFavoriteAnimalInputVal(favoriteAnimal);
       }
     } catch (error) {
       console.error(error);
@@ -74,6 +80,17 @@ export default function App() {
   }, [getCurrentStats]);
 
   const wave = React.useCallback(async () => {
+    setSubmitError(false);
+
+    if (favoriteAnimalInputVal === "") {
+      setFavoriteAnimalInputError(
+        "Hey! Don't forget to enter your favorite animal! "
+      );
+      return;
+    } else {
+      setFavoriteAnimalInputError(false);
+    }
+
     try {
       if (hasMetamask) {
         const { ethereum } = window;
@@ -93,7 +110,7 @@ export default function App() {
 
         // Add a wave
         setMining(true);
-        const waveTxn = await wavePortalContract.wave("Puma");
+        const waveTxn = await wavePortalContract.wave(favoriteAnimalInputVal);
         console.log("Mining...", waveTxn.hash);
 
         await waveTxn.wait();
@@ -111,8 +128,9 @@ export default function App() {
     } catch (error) {
       console.error(error);
       setMining(false);
+      setSubmitError("Error sending transaction through Metamask. Sorry :(");
     }
-  }, [hasMetamask, contractABI]);
+  }, [hasMetamask, contractABI, favoriteAnimalInputVal]);
 
   return (
     <>
@@ -164,13 +182,26 @@ export default function App() {
                 </p>
               )}
 
+              <input
+                type="text"
+                value={favoriteAnimalInputVal}
+                onChange={(e) => setFavoriteAnimalInputVal(e.target.value)}
+                placeholder="Enter the name of your favorite animal"
+              />
+
+              {favoriteAnimalInputError && (
+                <span className="error">{favoriteAnimalInputError}</span>
+              )}
+
               <button className="button" onClick={wave} disabled={mining}>
-                What is your favorite animal? (Wave)
+                Submit your favorite animal!
               </button>
 
               {mining && (
                 <p>Currently mining your transaction...please be patient</p>
               )}
+
+              {submitError && <span className="error">{submitError}</span>}
             </>
           )}
 

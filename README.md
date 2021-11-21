@@ -8,7 +8,7 @@ The course aims to introduce you to the Web3 ecosystem through the Ethereum netw
 
 ## Viewing the project
 
-You can view the deployed project on Vercel here: https://buildspace-solidity-intro-g22ww7ney-rhyshalsey.vercel.app/
+You can view the deployed project on Vercel here: https://buildspace-solidity-intro.vercel.app/
 
 ### How to use the app
 
