@@ -11,6 +11,10 @@ const contractAddress = "0x77Dd8048b76f4671e12BF1099F4264eD7Daca8e0";
 export default function App() {
   const contractABI = abiJson.abi;
 
+  const [numberOfWaves, setNumberOfWaves] = React.useState(0);
+  const [favoriteAnimal, setFavoriteAnimal] = React.useState("");
+  const [mining, setMining] = React.useState(false);
+
   const [doConnectMetamaskAccount, setDoConnectMetamaskAccount] =
     React.useState(false);
 
@@ -39,6 +43,36 @@ export default function App() {
     console.log("No authorized account found :(");
   } */
 
+  const getCurrentStats = React.useCallback(async () => {
+    try {
+      if (hasMetamask) {
+        const { ethereum } = window;
+
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const wavePortalContract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        let count = await wavePortalContract.getTotalWaves();
+        console.log("Total wave count is: ", count.toNumber());
+        setNumberOfWaves(count.toNumber());
+
+        const favoriteAnimal = await wavePortalContract.getFavoriteAnimal();
+        console.log("Your favorite animal is: ", favoriteAnimal);
+        setFavoriteAnimal(favoriteAnimal);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, [contractABI, hasMetamask]);
+
+  React.useEffect(() => {
+    getCurrentStats();
+  }, [getCurrentStats]);
+
   const wave = React.useCallback(async () => {
     try {
       if (hasMetamask) {
@@ -52,11 +86,31 @@ export default function App() {
           signer
         );
 
-        const count = await wavePortalContract.getTotalWaves();
+        // Get total waves from contract
+        let count = await wavePortalContract.getTotalWaves();
         console.log("Total wave count is: ", count.toNumber());
+        setNumberOfWaves(count.toNumber());
+
+        // Add a wave
+        setMining(true);
+        const waveTxn = await wavePortalContract.wave("Puma");
+        console.log("Mining...", waveTxn.hash);
+
+        await waveTxn.wait();
+        console.log("Mined -- ", waveTxn.hash);
+        setMining(false);
+
+        count = await wavePortalContract.getTotalWaves();
+        console.log("Final wave count: ", count.toNumber());
+        setNumberOfWaves(count.toNumber());
+
+        const favoriteAnimal = await wavePortalContract.getFavoriteAnimal();
+        console.log("Your favorite animal is: ", favoriteAnimal);
+        setFavoriteAnimal(favoriteAnimal);
       }
     } catch (error) {
       console.error(error);
+      setMining(false);
     }
   }, [hasMetamask, contractABI]);
 
@@ -96,11 +150,27 @@ export default function App() {
             <>
               <div className="header">Your Metamask wallet is connected!</div>
 
-              <p>Go ahead and tell me about your favorite animal! </p>
+              <p>
+                Currently {numberOfWaves} people have submitted their favorite
+                animal
+              </p>
 
-              <button className="button" onClick={wave}>
+              {favoriteAnimal !== "" ? (
+                <p>Your favorite animal seems to be the {favoriteAnimal}</p>
+              ) : (
+                <p>
+                  You don&apos;t seem to have mentionned your favorite animal
+                  yet. Go ahead and tell me what your favorite animal is!{" "}
+                </p>
+              )}
+
+              <button className="button" onClick={wave} disabled={mining}>
                 What is your favorite animal? (Wave)
               </button>
+
+              {mining && (
+                <p>Currently mining your transaction...please be patient</p>
+              )}
             </>
           )}
 
