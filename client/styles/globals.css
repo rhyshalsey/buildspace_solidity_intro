@@ -19,3 +19,29 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.background--custom {
+  background: linear-gradient(90deg, #545a78, #822d73, #158c89);
+  background-size: 300% 300%;
+  animation: gradient 60s alternate infinite;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+}
+@keyframes gradient {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 100%;
+  }
+}
+
+.card {
+  background: #fefefe;
+  padding: 25px;
+  border-radius: 10px;
+}
