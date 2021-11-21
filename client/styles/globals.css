@@ -44,4 +44,5 @@ code {
   background: #fefefe;
   padding: 25px;
   border-radius: 10px;
+  max-width: 650px;
 }
