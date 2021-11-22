@@ -2,7 +2,6 @@ import { useEffect, useReducer, useCallback } from "react";
 
 const initState = {
   currentAccount: null,
-  isConnected: false,
   isConnecting: false,
   hasMetamask: false,
   error: false,
@@ -15,7 +14,6 @@ const reducer = (state, action) => {
       return {
         ...state,
         currentAccount: action.account,
-        isConnected: action.isConnected,
         isConnecting: false,
         hasMetamask: true,
         error: false,
@@ -26,7 +24,6 @@ const reducer = (state, action) => {
       return {
         ...state,
         currentAccount: null,
-        isConnected: false,
         isConnecting: false,
         hasMetamask: false,
         error: "Unable to get your wallet. Please try again. ",
@@ -37,7 +34,6 @@ const reducer = (state, action) => {
       return {
         ...state,
         currentAccount: null,
-        isConnected: false,
         isConnecting: true,
         hasMetamask: true,
         error: false,
@@ -48,7 +44,6 @@ const reducer = (state, action) => {
       return {
         ...state,
         currentAccount: action.account,
-        isConnected: true,
         isConnecting: false,
         hasMetamask: true,
         error: false,
@@ -60,7 +55,6 @@ const reducer = (state, action) => {
       return {
         ...state,
         currentAccount: null,
-        isConnected: false,
         isConnecting: false,
         error: "Unable to connect to your wallet. Please try again. ",
         loading: false,
@@ -70,7 +64,6 @@ const reducer = (state, action) => {
       return {
         ...state,
         currentAccount: null,
-        isConnected: false,
         isConnecting: false,
         hasMetamask: false,
         error: false,
@@ -84,7 +77,7 @@ const reducer = (state, action) => {
 
 const useMetamastWallet = (doConnect = false) => {
   const [
-    { currentAccount, isConnected, isConnecting, hasMetamask, error, loading },
+    { currentAccount, isConnecting, hasMetamask, error, loading },
     dispatch,
   ] = useReducer(reducer, initState);
 
@@ -113,7 +106,6 @@ const useMetamastWallet = (doConnect = false) => {
       dispatch({
         type: "GET_WALLET_COMPLETE",
         hasMetamask,
-        isConnected,
         account,
       });
     } catch (e) {
@@ -169,7 +161,6 @@ const useMetamastWallet = (doConnect = false) => {
   return {
     ...initState,
     account: currentAccount,
-    isConnected,
     hasMetamask,
     error,
     loading,

@@ -5,20 +5,76 @@ import { ethers } from "ethers";
 import useMetamastWallet from "../src/middleware/wallet/useMetamaskWallet";
 
 import abiJson from "../src/abi/WavePortal.json";
+import Loading from "../src/components/Loading";
 
 const contractAddress = "0x77Dd8048b76f4671e12BF1099F4264eD7Daca8e0";
+
+const actions = {
+  FETCHING_CURRENT_STATS: "FETCHING_CURRENT_DATA",
+  FETCHING_CURRENT_STATS_COMPLETE: "FETCHING_CURRENT_STATS_COMPLETE",
+  SUBMIT_STARTED: "SUBMIT_STARTED",
+  SUBMIT_SUCCESS: "SUBMIT_SUCCESS",
+  SUBMIT_ERROR: "SUBMIT_ERROR",
+  FAVORITE_ANIMAL_FIELD_UPDATED: "FAVORITE_ANIMAL_FIELD_UPDATED",
+  FORM_ERROR: "FORM_ERROR",
+};
+
+const initState = {
+  numWaves: 0,
+  favoriteAnimal: "",
+  isMining: false,
+  favoriteAnimalInputVal: "",
+  formError: false,
+  submitError: false,
+  loading: false,
+};
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case actions.FETCHING_CURRENT_STATS:
+      return { ...state, loading: true };
+    case actions.FETCHING_CURRENT_STATS_COMPLETE:
+      return {
+        ...state,
+        loading: false,
+        numWaves: action.numWaves,
+        favoriteAnimal: action.favoriteAnimal,
+      };
+    case actions.SUBMIT_STARTED:
+      return { ...state, isMining: true, submitError: false, formError: false };
+    case actions.SUBMIT_SUCCESS:
+      return {
+        ...state,
+        isMining: false,
+        numWaves: action.numWaves,
+        favoriteAnimal: action.favoriteAnimal,
+      };
+    case actions.SUBMIT_ERROR:
+      return { ...state, isMining: false, submitError: action.error };
+    case actions.FORM_ERROR:
+      return { ...state, submitError: false, formError: action.error };
+    case actions.FAVORITE_ANIMAL_FIELD_UPDATED:
+      return { ...state, favoriteAnimalInputVal: action.value };
+    default:
+      return { ...state };
+  }
+};
 
 export default function App() {
   const contractABI = abiJson.abi;
 
-  const [numberOfWaves, setNumberOfWaves] = React.useState(0);
-  const [favoriteAnimal, setFavoriteAnimal] = React.useState("");
-  const [mining, setMining] = React.useState(false);
-  const [favoriteAnimalInputVal, setFavoriteAnimalInputVal] =
-    React.useState(favoriteAnimal);
-  const [favoriteAnimalInputError, setFavoriteAnimalInputError] =
-    React.useState(false);
-  const [submitError, setSubmitError] = React.useState(false);
+  const [
+    {
+      loading,
+      numWaves,
+      favoriteAnimal,
+      isMining,
+      favoriteAnimalInputVal,
+      formError,
+      submitError,
+    },
+    dispatch,
+  ] = React.useReducer(reducer, initState);
 
   const [doConnectMetamaskAccount, setDoConnectMetamaskAccount] =
     React.useState(false);
@@ -28,7 +84,6 @@ export default function App() {
     account,
     error: metamaskError,
     hasMetamask,
-    isConnected,
     loading: metamaskLoading,
   } = metamaskInfo;
 
@@ -36,21 +91,11 @@ export default function App() {
     setDoConnectMetamaskAccount(false);
   }, [metamaskInfo]);
 
-  /* if (!hasMetamask) {
-    console.log("Make sure your Metamask account is connected!");
-  } else {
-    console.log("You have metamask! Ethereum info: ", ethereum);
-  }
-
-  if (isConnected) {
-    console.log("Found authorizd account: ", account);
-  } else {
-    console.log("No authorized account found :(");
-  } */
-
   const getCurrentStats = React.useCallback(async () => {
     try {
       if (hasMetamask) {
+        dispatch({ type: actions.FETCHING_CURRENT_STATS });
+
         const { ethereum } = window;
 
         const provider = new ethers.providers.Web3Provider(ethereum);
@@ -61,14 +106,15 @@ export default function App() {
           signer
         );
 
-        let count = await wavePortalContract.getTotalWaves();
-        console.log("Total wave count is: ", count.toNumber());
-        setNumberOfWaves(count.toNumber());
+        const count = await wavePortalContract.getTotalWaves();
 
         const favoriteAnimal = await wavePortalContract.getFavoriteAnimal();
-        console.log("Your favorite animal is: ", favoriteAnimal);
-        setFavoriteAnimal(favoriteAnimal);
-        setFavoriteAnimalInputVal(favoriteAnimal);
+
+        dispatch({
+          type: actions.FETCHING_CURRENT_STATS_COMPLETE,
+          favoriteAnimal,
+          numWaves: count.toNumber(),
+        });
       }
     } catch (error) {
       console.error(error);
@@ -79,20 +125,18 @@ export default function App() {
     getCurrentStats();
   }, [getCurrentStats]);
 
-  const wave = React.useCallback(async () => {
-    setSubmitError(false);
-
+  const submitFavoriteAnimal = React.useCallback(async () => {
     if (favoriteAnimalInputVal === "") {
-      setFavoriteAnimalInputError(
-        "Hey! Don't forget to enter your favorite animal! "
-      );
-      return;
-    } else {
-      setFavoriteAnimalInputError(false);
+      return dispatch({
+        type: actions.FORM_ERROR,
+        error: "Hey! Don't forget to enter your favorite animal! ",
+      });
     }
 
     try {
       if (hasMetamask) {
+        dispatch({ type: actions.SUBMIT_STARTED });
+
         const { ethereum } = window;
 
         const provider = new ethers.providers.Web3Provider(ethereum);
@@ -105,30 +149,30 @@ export default function App() {
 
         // Get total waves from contract
         let count = await wavePortalContract.getTotalWaves();
-        console.log("Total wave count is: ", count.toNumber());
-        setNumberOfWaves(count.toNumber());
 
         // Add a wave
-        setMining(true);
         const waveTxn = await wavePortalContract.wave(favoriteAnimalInputVal);
-        console.log("Mining...", waveTxn.hash);
+        console.log("Mining... ", waveTxn.hash);
 
         await waveTxn.wait();
         console.log("Mined -- ", waveTxn.hash);
-        setMining(false);
 
         count = await wavePortalContract.getTotalWaves();
-        console.log("Final wave count: ", count.toNumber());
-        setNumberOfWaves(count.toNumber());
 
-        const favoriteAnimal = await wavePortalContract.getFavoriteAnimal();
-        console.log("Your favorite animal is: ", favoriteAnimal);
-        setFavoriteAnimal(favoriteAnimal);
+        const newFavoriteAnimal = await wavePortalContract.getFavoriteAnimal();
+
+        dispatch({
+          type: actions.SUBMIT_SUCCESS,
+          numWaves: count.toNumber(),
+          favoriteAnimal: newFavoriteAnimal,
+        });
       }
     } catch (error) {
       console.error(error);
-      setMining(false);
-      setSubmitError("Error sending transaction through Metamask. Sorry :(");
+      dispatch({
+        type: actions.FORM_ERROR,
+        error: "Error sending transaction through Metamask. Sorry :( ",
+      });
     }
   }, [hasMetamask, contractABI, favoriteAnimalInputVal]);
 
@@ -168,40 +212,67 @@ export default function App() {
             <>
               <div className="header">Your Metamask wallet is connected!</div>
 
-              <p>
-                Currently {numberOfWaves} people have submitted their favorite
-                animal
-              </p>
-
-              {favoriteAnimal !== "" ? (
-                <p>Your favorite animal seems to be the {favoriteAnimal}</p>
+              {loading ? (
+                <>
+                  <Loading />
+                  <p>Fetching data from the blockchain...</p>
+                </>
               ) : (
-                <p>
-                  You don&apos;t seem to have mentionned your favorite animal
-                  yet. Go ahead and tell me what your favorite animal is!{" "}
-                </p>
+                <>
+                  <p>
+                    Currently {numWaves} people have submitted their favorite
+                    animal
+                  </p>
+
+                  {favoriteAnimal !== "" ? (
+                    <p>Your favorite animal seems to be the {favoriteAnimal}</p>
+                  ) : (
+                    <p>
+                      You don&apos;t seem to have mentionned your favorite
+                      animal yet. Go ahead and tell me what your favorite animal
+                      is!
+                    </p>
+                  )}
+
+                  <input
+                    type="text"
+                    value={favoriteAnimalInputVal}
+                    onChange={(e) =>
+                      dispatch({
+                        type: actions.FAVORITE_ANIMAL_FIELD_UPDATED,
+                        value: e.target.value,
+                      })
+                    }
+                    placeholder={`Enter the name of your ${
+                      favoriteAnimal ? "new " : ""
+                    }favorite animal`}
+                  />
+
+                  {formError && <span className="error">{formError}</span>}
+
+                  <button
+                    className="button"
+                    onClick={() => {
+                      isMining && submitFavoriteAnimal();
+                    }}
+                    disabled={isMining}
+                  >
+                    Submit your favorite animal!
+                  </button>
+
+                  {isMining && (
+                    <>
+                      <Loading />
+                      <p>
+                        Currently mining your transaction on the Ethereum
+                        blockchain...
+                      </p>
+                    </>
+                  )}
+
+                  {submitError && <span className="error">{submitError}</span>}
+                </>
               )}
-
-              <input
-                type="text"
-                value={favoriteAnimalInputVal}
-                onChange={(e) => setFavoriteAnimalInputVal(e.target.value)}
-                placeholder="Enter the name of your favorite animal"
-              />
-
-              {favoriteAnimalInputError && (
-                <span className="error">{favoriteAnimalInputError}</span>
-              )}
-
-              <button className="button" onClick={wave} disabled={mining}>
-                Submit your favorite animal!
-              </button>
-
-              {mining && (
-                <p>Currently mining your transaction...please be patient</p>
-              )}
-
-              {submitError && <span className="error">{submitError}</span>}
             </>
           )}
 

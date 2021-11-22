@@ -36,6 +36,29 @@ input[type="text"]:focus {
   outline: 1px solid #158c89;
 }
 
+.button {
+  cursor: pointer;
+  margin-top: 16px;
+  padding: 16px;
+  font-size: 1.02rem;
+  border: 0;
+  border-radius: 5px;
+  background-color: #158c89;
+  color: white;
+  font-weight: bold;
+  transition: 0.15s all ease-out;
+}
+.button:hover:not(:disabled) {
+  background-color: #822d73;
+  transform: scale(1.025);
+}
+
+.button:disabled,
+button[disabled] {
+  opacity: 0.3;
+  cursor: auto;
+}
+
 .background--custom {
   background: linear-gradient(90deg, #545a78, #822d73, #158c89);
   background-size: 300% 300%;
