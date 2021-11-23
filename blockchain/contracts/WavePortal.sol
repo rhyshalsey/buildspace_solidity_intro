@@ -5,16 +5,35 @@ import "hardhat/console.sol";
 contract WavePortal {
     uint256 totalWaves;
 
-    constructor() {
-        console.log("Ayyyyy LMAO! ");
-    }
+    constructor() {}
 
     mapping(address => string) favoriteAnimals;
 
+    event NewFavoriteAnimal(
+        address indexed from,
+        uint256 timestamp,
+        string animal
+    );
+
+    struct FavoriteAnimal {
+        address sender;
+        uint256 timestamp;
+        string animal;
+    }
+
+    FavoriteAnimal[] favoriteAnimalSubmissions;
+
+    // TODO Change function name to set favorite animal
     function wave(string memory _animal) public {
         totalWaves += 1;
 
         favoriteAnimals[msg.sender] = _animal;
+
+        favoriteAnimalSubmissions.push(
+            FavoriteAnimal(msg.sender, block.timestamp, _animal)
+        );
+
+        emit NewFavoriteAnimal(msg.sender, block.timestamp, _animal);
 
         console.log(
             msg.sender,
@@ -31,6 +50,15 @@ contract WavePortal {
         return favoriteAnimal;
     }
 
+    function getAllFavoriteAnimals()
+        public
+        view
+        returns (FavoriteAnimal[] memory)
+    {
+        return favoriteAnimalSubmissions;
+    }
+
+    // TODO Change the name of this function to get the total number of submissions
     function getTotalWaves() public view returns (uint256) {
         console.log("We have %d total waves! ", totalWaves);
 
