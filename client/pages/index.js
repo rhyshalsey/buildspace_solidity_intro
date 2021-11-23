@@ -1,13 +1,15 @@
 import React from "react";
 import Head from "next/head";
 import { ethers } from "ethers";
+import * as dayjs from "dayjs";
 
 import useMetamastWallet from "../src/middleware/wallet/useMetamaskWallet";
 
 import abiJson from "../src/abi/WavePortal.json";
 import Loading from "../src/components/Loading";
+import FavoiteAnimalTable from "../src/components/FavoriteAnimalTable";
 
-const contractAddress = "0x77Dd8048b76f4671e12BF1099F4264eD7Daca8e0";
+const contractAddress = "0x86F6D1A568356B409Bf1836c3B1A1Cbb8710621c";
 
 const actions = {
   FETCHING_CURRENT_STATS: "FETCHING_CURRENT_DATA",
@@ -24,6 +26,7 @@ const initState = {
   favoriteAnimal: "",
   isMining: false,
   favoriteAnimalInputVal: "",
+  allFavoriteAnimals: [],
   formError: false,
   submitError: false,
   loading: false,
@@ -39,6 +42,7 @@ const reducer = (state, action) => {
         loading: false,
         numWaves: action.numWaves,
         favoriteAnimal: action.favoriteAnimal,
+        allFavoriteAnimals: action.allFavoriteAnimals,
       };
     case actions.SUBMIT_STARTED:
       return { ...state, isMining: true, submitError: false, formError: false };
@@ -68,6 +72,7 @@ export default function App() {
       loading,
       numWaves,
       favoriteAnimal,
+      allFavoriteAnimals,
       isMining,
       favoriteAnimalInputVal,
       formError,
@@ -110,10 +115,24 @@ export default function App() {
 
         const favoriteAnimal = await wavePortalContract.getFavoriteAnimal();
 
+        const allFavoriteAnimalsResp =
+          await wavePortalContract.getAllFavoriteAnimals();
+
+        const allFavoriteAnimals = allFavoriteAnimalsResp.map(
+          (animalEntry) => ({
+            sender: animalEntry.sender,
+            animal: animalEntry.animal,
+            timestamp: dayjs(animalEntry.timestamp * 1000).format(
+              "MMMM D, YYYY h:mm A"
+            ),
+          })
+        );
+
         dispatch({
           type: actions.FETCHING_CURRENT_STATS_COMPLETE,
           favoriteAnimal,
           numWaves: count.toNumber(),
+          allFavoriteAnimals,
         });
       }
     } catch (error) {
@@ -175,6 +194,8 @@ export default function App() {
       });
     }
   }, [hasMetamask, contractABI, favoriteAnimalInputVal]);
+
+  console.log(allFavoriteAnimals);
 
   return (
     <>
@@ -253,7 +274,7 @@ export default function App() {
                   <button
                     className="button"
                     onClick={() => {
-                      isMining && submitFavoriteAnimal();
+                      !isMining && submitFavoriteAnimal();
                     }}
                     disabled={isMining}
                   >
@@ -278,6 +299,12 @@ export default function App() {
 
           {metamaskError && <span className="error">{metamaskError}</span>}
         </div>
+
+        {allFavoriteAnimals.length > 0 && (
+          <div id="tableContainer" className="dataContainer card">
+            <FavoiteAnimalTable data={allFavoriteAnimals} />
+          </div>
+        )}
       </div>
     </>
   );

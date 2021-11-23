@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import "../styles/Home.css";
-import "../styles/loading.css";
+import "../styles/Loading.css";
+import "../styles/FavoriteAnimalTable.css";
 
 function MyApp({ Component, pageProps }) {
   return (
