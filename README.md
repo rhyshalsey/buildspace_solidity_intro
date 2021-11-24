@@ -4,7 +4,7 @@ This is my project created from the introductory course to Web3 and Solidity on 
 
 The course aims to introduce you to the Web3 ecosystem through the Ethereum network using Solidity.
 
-** Disclaimer ** This uses the Ethereum test net and is not written on the real Ethereum blockchain. Otherwise it would cost you real money 😉
+**Disclaimer** This uses the Ethereum test net and is not written on the real Ethereum blockchain. Otherwise it would cost you real money 😉
 
 ## Project info
 
@@ -75,6 +75,8 @@ npm run contract-deploy
 ```
 
 ## Testing
+
+### Client
 
 Considering this is simply a test app on the basis of learning Solidity and smart contracts, no testing has been added on the client side.
 
