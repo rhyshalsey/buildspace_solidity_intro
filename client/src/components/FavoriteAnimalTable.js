@@ -6,9 +6,11 @@ const FavoiteAnimalTable = ({ data }) => {
   return (
     <table className="favoriteAnimalTable">
       <thead>
-        {Object.keys(data[0]).map((key) => (
-          <th key={key}>{key}</th>
-        ))}
+        <tr>
+          {Object.keys(data[0]).map((key) => (
+            <th key={key}>{key}</th>
+          ))}
+        </tr>
       </thead>
       <tbody>
         {data.map((row, index) => (

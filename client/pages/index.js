@@ -9,7 +9,7 @@ import abiJson from "../src/abi/WavePortal.json";
 import Loading from "../src/components/Loading";
 import FavoiteAnimalTable from "../src/components/FavoriteAnimalTable";
 
-const contractAddress = "0x86F6D1A568356B409Bf1836c3B1A1Cbb8710621c";
+const contractAddress = "0xA022c0fA8fa7c26160C61C140Be2Ac8F6d466777";
 
 const actions = {
   FETCHING_CURRENT_STATS: "FETCHING_CURRENT_DATA",
@@ -194,8 +194,6 @@ export default function App() {
       });
     }
   }, [hasMetamask, contractABI, favoriteAnimalInputVal]);
-
-  console.log(allFavoriteAnimals);
 
   return (
     <>
