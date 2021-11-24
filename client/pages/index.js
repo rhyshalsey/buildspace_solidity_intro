@@ -52,6 +52,7 @@ const reducer = (state, action) => {
         isMining: false,
         numWaves: action.numWaves,
         favoriteAnimal: action.favoriteAnimal,
+        allFavoriteAnimals: action.allFavoriteAnimals,
       };
     case actions.SUBMIT_ERROR:
       return { ...state, isMining: false, submitError: action.error };
@@ -180,10 +181,24 @@ export default function App() {
 
         const newFavoriteAnimal = await wavePortalContract.getFavoriteAnimal();
 
+        const allFavoriteAnimalsResp =
+          await wavePortalContract.getAllFavoriteAnimals();
+
+        const allFavoriteAnimals = allFavoriteAnimalsResp.map(
+          (animalEntry) => ({
+            sender: animalEntry.sender,
+            animal: animalEntry.animal,
+            timestamp: dayjs(animalEntry.timestamp * 1000).format(
+              "MMMM D, YYYY h:mm A"
+            ),
+          })
+        );
+
         dispatch({
           type: actions.SUBMIT_SUCCESS,
           numWaves: count.toNumber(),
           favoriteAnimal: newFavoriteAnimal,
+          allFavoriteAnimals,
         });
       }
     } catch (error) {
