@@ -1,0 +1,21 @@
+{
+  "name": "buildspace-intro-to-web3",
+  "version": "1.0.0",
+  "description": "This is my project created from the introductory course to Web3 and Solidity on [buildspace.so](https://buildspace.so/).",
+  "scripts": {
+    "client-dev": "cd client && npm run dev",
+    "contract-run": "cd smart-contract && npx hardhat run scripts/run.js",
+    "contract-deploy": "cd smart-contract && npx hardhat run scripts/deploy.js --network rinkeby"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rhyshalsey/buildspace_solidity_intro.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rhyshalsey/buildspace_solidity_intro/issues"
+  },
+  "homepage": "https://github.com/rhyshalsey/buildspace_solidity_intro#readme"
+}
