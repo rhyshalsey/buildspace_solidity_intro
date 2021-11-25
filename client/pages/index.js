@@ -19,6 +19,7 @@ const actions = {
   SUBMIT_ERROR: "SUBMIT_ERROR",
   FAVORITE_ANIMAL_FIELD_UPDATED: "FAVORITE_ANIMAL_FIELD_UPDATED",
   FORM_ERROR: "FORM_ERROR",
+  NEW_WAVE_RECEIVED: "NEW_WAVE_RECEIVED",
 };
 
 const initState = {
@@ -52,7 +53,6 @@ const reducer = (state, action) => {
         isMining: false,
         numWaves: action.numWaves,
         favoriteAnimal: action.favoriteAnimal,
-        allFavoriteAnimals: action.allFavoriteAnimals,
       };
     case actions.SUBMIT_ERROR:
       return { ...state, isMining: false, submitError: action.error };
@@ -60,6 +60,14 @@ const reducer = (state, action) => {
       return { ...state, submitError: false, formError: action.error };
     case actions.FAVORITE_ANIMAL_FIELD_UPDATED:
       return { ...state, favoriteAnimalInputVal: action.value };
+    case actions.NEW_WAVE_RECEIVED:
+      return {
+        ...state,
+        allFavoriteAnimals: [
+          ...state.allFavoriteAnimals,
+          action.newFavoriteAnimal,
+        ],
+      };
     default:
       return { ...state };
   }
@@ -93,6 +101,21 @@ export default function App() {
     loading: metamaskLoading,
   } = metamaskInfo;
 
+  const connectToContact = React.useCallback(
+    (ethereum) => {
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const signer = provider.getSigner();
+      const wavePortalContract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+
+      return wavePortalContract;
+    },
+    [contractABI]
+  );
+
   React.useEffect(() => {
     setDoConnectMetamaskAccount(false);
   }, [metamaskInfo]);
@@ -104,13 +127,7 @@ export default function App() {
 
         const { ethereum } = window;
 
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const wavePortalContract = new ethers.Contract(
-          contractAddress,
-          contractABI,
-          signer
-        );
+        const wavePortalContract = connectToContact(ethereum);
 
         const count = await wavePortalContract.getTotalWaves();
 
@@ -139,7 +156,7 @@ export default function App() {
     } catch (error) {
       console.error(error);
     }
-  }, [contractABI, hasMetamask]);
+  }, [hasMetamask, connectToContact]);
 
   React.useEffect(() => {
     getCurrentStats();
@@ -159,19 +176,15 @@ export default function App() {
 
         const { ethereum } = window;
 
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const wavePortalContract = new ethers.Contract(
-          contractAddress,
-          contractABI,
-          signer
-        );
+        const wavePortalContract = connectToContact(ethereum);
 
         // Get total waves from contract
         let count = await wavePortalContract.getTotalWaves();
 
         // Add a wave
-        const waveTxn = await wavePortalContract.wave(favoriteAnimalInputVal);
+        const waveTxn = await wavePortalContract.wave(favoriteAnimalInputVal, {
+          gasLimit: 300000,
+        });
         console.log("Mining... ", waveTxn.hash);
 
         await waveTxn.wait();
@@ -181,24 +194,10 @@ export default function App() {
 
         const newFavoriteAnimal = await wavePortalContract.getFavoriteAnimal();
 
-        const allFavoriteAnimalsResp =
-          await wavePortalContract.getAllFavoriteAnimals();
-
-        const allFavoriteAnimals = allFavoriteAnimalsResp.map(
-          (animalEntry) => ({
-            sender: animalEntry.sender,
-            animal: animalEntry.animal,
-            timestamp: dayjs(animalEntry.timestamp * 1000).format(
-              "MMMM D, YYYY h:mm A"
-            ),
-          })
-        );
-
         dispatch({
           type: actions.SUBMIT_SUCCESS,
           numWaves: count.toNumber(),
           favoriteAnimal: newFavoriteAnimal,
-          allFavoriteAnimals,
         });
       }
     } catch (error) {
@@ -208,7 +207,36 @@ export default function App() {
         error: "Error sending transaction through Metamask. Sorry :( ",
       });
     }
-  }, [hasMetamask, contractABI, favoriteAnimalInputVal]);
+  }, [hasMetamask, favoriteAnimalInputVal, connectToContact]);
+
+  React.useEffect(() => {
+    let wavePortalContract;
+
+    const onNewAnimalSubmission = (from, timestamp, animal) => {
+      console.log("New animal submission: ", from, timestamp, animal);
+      dispatch({
+        type: actions.NEW_WAVE_RECEIVED,
+        newFavoriteAnimal: {
+          sender: from,
+          animal,
+          timestamp: dayjs(timestamp * 1000).format("MMMM D, YYYY h:mm A"),
+        },
+      });
+    };
+
+    if (hasMetamask) {
+      const { ethereum } = window;
+
+      wavePortalContract = connectToContact(ethereum);
+      wavePortalContract.on("NewFavoriteAnimal", onNewAnimalSubmission);
+    }
+
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off("NewFavoriteAnimal", onNewAnimalSubmission);
+      }
+    };
+  }, [hasMetamask, connectToContact]);
 
   return (
     <>
