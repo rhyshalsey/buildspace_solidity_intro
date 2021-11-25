@@ -30,6 +30,10 @@ const main = async () => {
   let waveTxn = await waveContract.wave("Owner's animal");
   await waveTxn.wait();
 
+  // Owner waves again (causes error due to spamming prevention)
+  // waveTxn = await waveContract.wave("Owner's animal");
+  // await waveTxn.wait();
+
   let favoriteAnimal = await waveContract.getFavoriteAnimal();
   console.log("Owner's favorite animal: ", favoriteAnimal);
 

@@ -5,11 +5,11 @@ import "hardhat/console.sol";
 contract WavePortal {
     uint256 totalWaves;
 
-    constructor() payable {
-        console.log("We have been constructed!");
-    }
+    uint256 private seed;
 
     mapping(address => string) favoriteAnimals;
+
+    mapping(address => uint256) lastWavedAt;
 
     event NewFavoriteAnimal(
         address indexed from,
@@ -25,25 +25,49 @@ contract WavePortal {
 
     FavoriteAnimal[] favoriteAnimalSubmissions;
 
+    constructor() payable {
+        console.log("We have been constructed!");
+
+        seed = (block.timestamp + block.difficulty) % 100;
+    }
+
     // TODO Change function name to set favorite animal
     function wave(string memory _animal) public {
+        // Prevent user spamming
+        require(
+            lastWavedAt[msg.sender] + 15 minutes < block.timestamp,
+            "Please wait 15 minutes before submitting your favorite animal again"
+        );
+
+        lastWavedAt[msg.sender] = block.timestamp;
+
+        // Increment waves
         totalWaves += 1;
 
+        // Set user's favorite animal
         favoriteAnimals[msg.sender] = _animal;
 
         favoriteAnimalSubmissions.push(
             FavoriteAnimal(msg.sender, block.timestamp, _animal)
         );
 
-        emit NewFavoriteAnimal(msg.sender, block.timestamp, _animal);
+        // Generate random seed for ETH giveaway
+        seed = (block.difficulty + block.timestamp + seed) % 100;
 
-        uint256 prizeAmount = 0.0001 ether;
-        require(
-            prizeAmount <= address(this).balance,
-            "Trying to withdraw more money than the contract has. "
-        );
-        (bool success, ) = (msg.sender).call{value: prizeAmount}("");
-        require(success, "Failed to withdraw money from contract. ");
+        if (seed <= 50) {
+            console.log("%s won!", msg.sender);
+
+            uint256 prizeAmount = 0.0001 ether;
+            require(
+                prizeAmount <= address(this).balance,
+                "Trying to withdraw more money than the contract has. "
+            );
+            (bool success, ) = (msg.sender).call{value: prizeAmount}("");
+            require(success, "Failed to withdraw money from contract. ");
+        }
+
+        // Emit event when new animal is added
+        emit NewFavoriteAnimal(msg.sender, block.timestamp, _animal);
 
         console.log(
             msg.sender,

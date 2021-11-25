@@ -9,7 +9,7 @@ import abiJson from "../src/abi/WavePortal.json";
 import Loading from "../src/components/Loading";
 import FavoiteAnimalTable from "../src/components/FavoriteAnimalTable";
 
-const contractAddress = "0xA022c0fA8fa7c26160C61C140Be2Ac8F6d466777";
+const contractAddress = "0x31032CB2cae5155182589d0B4833788f12d4046B";
 
 const actions = {
   FETCHING_CURRENT_STATS: "FETCHING_CURRENT_DATA",
