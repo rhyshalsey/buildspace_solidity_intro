@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "description": "This is my project created from the introductory course to Web3 and Solidity on [buildspace.so](https://buildspace.so/).",
   "scripts": {
+    "get-secrets": "vercel env pull smart-contract/.env",
     "client-install": "cd client && npm i",
     "client-dev": "cd client && npm run dev",
     "contract-install": "cd smart-contract && npm i",
     "contract-run": "cd smart-contract && npx hardhat run scripts/run.js",
     "contract-deploy-local": "cd smart-contract && npx hardhat run scripts/deploy.js --network localhost",
     "contract-deploy": "cd smart-contract && npx hardhat run scripts/deploy.js --network rinkeby",
-    "hardhat-run": "cd smart-contract && npx hardhat node"
+    "hardhat-run": "cd smart-contract && npx hardhat node",
+    "postinstall": "npm run client-install && npm run contract-install"
   },
   "repository": {
     "type": "git",
