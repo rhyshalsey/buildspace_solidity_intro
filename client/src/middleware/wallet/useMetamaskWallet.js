@@ -8,9 +8,23 @@ const initState = {
   loading: true,
 };
 
+const actions = {
+  WALLET_CONNECTED: "WALLET_CONNECTED",
+  ERROR_GETTING_WALLET: "ERROR_GETTING_WALLET",
+  CONNECTING_WALLET: "CONNECTING_WALLET",
+  CONNECTING_ACCOUNT: "CONNECTING_ACCOUNT",
+  ACCOUNT_CONNECTED: "ACCOUNT_CONNECTED",
+  ERROR_CONNECTING_WALLET: "ERROR_CONNECTING_WALLET",
+  ERROR_CONNECTING_ACCOUNT: "ERROR_CONNECTING_ACCOUNT",
+  ACCOUNT_DISCONNECTED: "ACCOUNT_DISCONNECTED",
+  ACCOUNT_UPDATED: "ACCOUNT_UPDATED",
+  METAMASK_ACCOUNT_NOT_CONNECTED: "METAMASK_ACCOUNT_NOT_CONNECTED",
+  METAMASK_NOT_FOUND: "METAMASK_NOT_FOUND",
+};
+
 const reducer = (state, action) => {
   switch (action.type) {
-    case "WALLET_CONNECTED": {
+    case actions.WALLET_CONNECTED: {
       return {
         ...state,
         currentAccount: action.account,
@@ -20,7 +34,7 @@ const reducer = (state, action) => {
         loading: false,
       };
     }
-    case "ERROR_GETTING_WALLET": {
+    case actions.ERROR_GETTING_WALLET: {
       return {
         ...state,
         currentAccount: null,
@@ -30,8 +44,8 @@ const reducer = (state, action) => {
         loading: false,
       };
     }
-    case "CONNECTING_WALLET":
-    case "CONNECTING_ACCOUNT": {
+    case actions.CONNECTING_WALLET:
+    case actions.CONNECTING_ACCOUNT: {
       return {
         ...state,
         currentAccount: null,
@@ -41,7 +55,7 @@ const reducer = (state, action) => {
         loading: true,
       };
     }
-    case "ACCOUNT_CONNECTED": {
+    case actions.ACCOUNT_CONNECTED: {
       return {
         ...state,
         currentAccount: action.account,
@@ -51,8 +65,8 @@ const reducer = (state, action) => {
         loading: false,
       };
     }
-    case "ERROR_CONNECTING_WALLET":
-    case "ERROR_CONNECTING_ACCOUNT": {
+    case actions.ERROR_CONNECTING_WALLET:
+    case actions.ERROR_CONNECTING_ACCOUNT: {
       return {
         ...state,
         currentAccount: null,
@@ -61,7 +75,7 @@ const reducer = (state, action) => {
         loading: false,
       };
     }
-    case "ACCOUNT_DISCONNECTED": {
+    case actions.ACCOUNT_DISCONNECTED: {
       return {
         ...state,
         currentAccount: null,
@@ -70,7 +84,7 @@ const reducer = (state, action) => {
         loading: false,
       };
     }
-    case "ACCOUNT_UPDATED": {
+    case actions.ACCOUNT_UPDATED: {
       return {
         ...state,
         currentAccount: action.account,
@@ -80,7 +94,7 @@ const reducer = (state, action) => {
         loading: false,
       };
     }
-    case "METAMASK_ACCOUNT_NOT CONNECTED": {
+    case actions.METAMASK_ACCOUNT_NOT_CONNECTED: {
       return {
         ...state,
         currentAccount: null,
@@ -89,7 +103,7 @@ const reducer = (state, action) => {
         loading: false,
       };
     }
-    case "METAMASK_NOT_FOUND": {
+    case actions.METAMASK_NOT_FOUND: {
       return {
         ...state,
         currentAccount: null,
@@ -133,14 +147,14 @@ const useMetamastWallet = (doConnect = false) => {
   const checkWalletConnected = useCallback(async () => {
     try {
       dispatch({
-        type: "CONNECTING_WALLET",
+        type: actions.CONNECTING_WALLET,
       });
 
       const hasMetamask = checkHasMetamask();
 
       if (!hasMetamask) {
         return dispatch({
-          type: "METAMASK_NOT_FOUND",
+          type: actions.METAMASK_NOT_FOUND,
         });
       }
 
@@ -151,21 +165,21 @@ const useMetamastWallet = (doConnect = false) => {
 
       if (!hasConnectedAccount) {
         return dispatch({
-          type: "METAMASK_ACCOUNT_NOT CONNECTED",
+          type: actions.METAMASK_ACCOUNT_NOT_CONNECTED,
         });
       }
 
       const account = hasConnectedAccount ? accounts[0] : null;
 
       dispatch({
-        type: "WALLET_CONNECTED",
+        type: actions.WALLET_CONNECTED,
         hasMetamask,
         account,
       });
     } catch (e) {
       console.error(e);
       dispatch({
-        type: "ERROR_GETTING_WALLET",
+        type: actions.ERROR_GETTING_WALLET,
       });
     }
   }, []);
@@ -176,14 +190,14 @@ const useMetamastWallet = (doConnect = false) => {
   const connectWallet = useCallback(async () => {
     try {
       dispatch({
-        type: "CONNECTING_ACCOUNT",
+        type: actions.CONNECTING_ACCOUNT,
       });
 
       const hasMetamask = checkHasMetamask();
 
       if (!hasMetamask) {
         return dispatch({
-          type: "METAMASK_NOT_FOUND",
+          type: actions.METAMASK_NOT_FOUND,
         });
       }
 
@@ -193,13 +207,13 @@ const useMetamastWallet = (doConnect = false) => {
       });
 
       dispatch({
-        type: "ACCOUNT_CONNECTED",
+        type: actions.ACCOUNT_CONNECTED,
         account: accounts[0],
       });
     } catch (error) {
       console.error(error);
       dispatch({
-        type: "ERROR_CONNECTING_ACCOUNT",
+        type: actions.ERROR_CONNECTING_ACCOUNT,
       });
     }
   }, []);
@@ -208,13 +222,13 @@ const useMetamastWallet = (doConnect = false) => {
     (accounts) => {
       if (accounts.length <= 0) {
         dispatch({
-          type: "ACCOUNT_DISCONNECTED",
+          type: actions.ACCOUNT_DISCONNECTED,
         });
       }
 
       if (accounts[0] !== currentAccount) {
         dispatch({
-          type: "ACCOUNT_UPDATED",
+          type: actions.ACCOUNT_UPDATED,
           account: accounts[0],
         });
       }
