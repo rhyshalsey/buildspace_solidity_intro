@@ -5,8 +5,8 @@ import * as dayjs from "dayjs";
 import useMetamastWallet from "../src/middleware/wallet/useMetamaskWallet";
 
 import abiJson from "../src/abi/WavePortal.json";
-import Loading from "../src/components/Loading";
-import FavoiteAnimalTable from "../src/components/FavoriteAnimalTable";
+import Loading from "../src/components/Loading/Loading";
+import FavoiteAnimalTable from "../src/components/FavoriteAnimalTable/FavoriteAnimalTable";
 
 const contractAddress = "0x31032CB2cae5155182589d0B4833788f12d4046B";
 
@@ -100,6 +100,10 @@ export default function App() {
     loading: metamaskLoading,
   } = metamaskInfo;
 
+  React.useEffect(() => {
+    setDoConnectMetamaskAccount(false);
+  }, [metamaskInfo]);
+
   const connectToContact = React.useCallback(
     (ethereum) => {
       const provider = new ethers.providers.Web3Provider(ethereum);
@@ -114,10 +118,6 @@ export default function App() {
     },
     [contractABI]
   );
-
-  React.useEffect(() => {
-    setDoConnectMetamaskAccount(false);
-  }, [metamaskInfo]);
 
   const getCurrentStats = React.useCallback(async () => {
     try {
