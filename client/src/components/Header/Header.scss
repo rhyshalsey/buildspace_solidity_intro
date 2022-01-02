@@ -1,0 +1,18 @@
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-direction: row;
+  width: 100%;
+  padding: 12px 24px;
+  background-color: rgba(black, 0.3);
+
+  .button {
+    border: 2px solid white;
+  }
+
+  .connected-message {
+    color: white;
+    font-weight: 600;
+  }
+}

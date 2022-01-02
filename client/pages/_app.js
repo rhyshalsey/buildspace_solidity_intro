@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Header from "../src/components/Header/Header";
 
 import "../styles/main.scss";
 
@@ -10,6 +11,7 @@ function MyApp({ Component, pageProps }) {
       </Head>
       <div className="background--custom"></div>
 
+      <Header />
       <div className="mainContainer">
         <Component {...pageProps} />
       </div>

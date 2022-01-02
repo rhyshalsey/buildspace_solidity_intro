@@ -240,7 +240,7 @@ export default function App() {
   if (!hasMetamask) {
     return (
       <div className="dataContainer card">
-        <div className="header">😱 Metamask not found </div>
+        <h1>😱 Metamask not found </h1>
 
         <p>
           For this application to work you need to have the Metamask browser
@@ -258,7 +258,7 @@ export default function App() {
   if (!account) {
     return (
       <div className="dataContainer card">
-        <div className="header">👋 Hey there!</div>
+        <h1>👋 Hey there!</h1>
 
         <p>Connect your Ethereum wallet tell me about your favorite animal!</p>
 
@@ -292,7 +292,7 @@ export default function App() {
     <>
       <div className="dataContainer card">
         <>
-          <div className="header">Your Metamask wallet is connected!</div>
+          <h1>Your Metamask wallet is connected!</h1>
 
           {loading ? (
             <>
