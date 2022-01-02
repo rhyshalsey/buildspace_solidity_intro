@@ -1,5 +1,4 @@
 import React from "react";
-import Head from "next/head";
 import { ethers } from "ethers";
 import * as dayjs from "dayjs";
 
@@ -122,7 +121,7 @@ export default function App() {
 
   const getCurrentStats = React.useCallback(async () => {
     try {
-      if (hasMetamask) {
+      if (hasMetamask && account) {
         dispatch({ type: actions.FETCHING_CURRENT_STATS });
 
         const { ethereum } = window;
@@ -156,7 +155,7 @@ export default function App() {
     } catch (error) {
       console.error(error);
     }
-  }, [hasMetamask, connectToContact]);
+  }, [hasMetamask, account, connectToContact]);
 
   React.useEffect(() => {
     getCurrentStats();
@@ -238,115 +237,132 @@ export default function App() {
     };
   }, [hasMetamask, connectToContact]);
 
+  if (!hasMetamask) {
+    return (
+      <div className="dataContainer card">
+        <div className="header">😱 Metamask not found </div>
+
+        <p>
+          For this application to work you need to have the Metamask browser
+          extension installed
+        </p>
+
+        <p>
+          You can download Metamask from their{" "}
+          <a href="https://metamask.io/">official website</a>
+        </p>
+      </div>
+    );
+  }
+
+  if (!account) {
+    return (
+      <div className="dataContainer card">
+        <div className="header">👋 Hey there!</div>
+
+        <p>Connect your Ethereum wallet tell me about your favorite animal!</p>
+
+        <p>
+          This simple app allows you to connect your MetaMask wallet and enter
+          your favorite animal. It will then be saved to the blockchain!
+        </p>
+        <h3>Getting started</h3>
+        <p>
+          The first step is to connect your Metamask wallet. Click the button
+          below to get started!
+        </p>
+        {metamaskLoading ? (
+          <>
+            <Loading />
+            <p>Connecting Metamask account...</p>
+          </>
+        ) : (
+          <button
+            className="button"
+            onClick={() => setDoConnectMetamaskAccount(true)}
+          >
+            Connect wallet!
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <>
-      <Head>
-        <title>What is your favorite animal on the blockchain? </title>
-      </Head>
-      <div className="mainContainer">
-        <div className="dataContainer card">
-          {!account ? (
+      <div className="dataContainer card">
+        <>
+          <div className="header">Your Metamask wallet is connected!</div>
+
+          {loading ? (
             <>
-              <div className="header">👋 Hey there!</div>
-
-              <p>
-                Connect your Ethereum wallet tell me about your favorite animal!
-              </p>
-
-              <p>
-                This simple app allows you to connect your MetaMask wallet and
-                enter your favorite animal. It will then be saved to the
-                blockchain!
-              </p>
-              <h3>Getting started</h3>
-              <p>
-                The first step is to connect your Metamask wallet. Click the
-                button below to get started!
-              </p>
-              <button
-                className="button"
-                onClick={() => setDoConnectMetamaskAccount(true)}
-              >
-                Connect wallet!
-              </button>
+              <Loading />
+              <p>Fetching data from the blockchain...</p>
             </>
           ) : (
             <>
-              <div className="header">Your Metamask wallet is connected!</div>
+              <p>
+                Currently {numWaves} people have submitted their favorite animal
+              </p>
 
-              {loading ? (
+              {favoriteAnimal !== "" ? (
+                <p>Your favorite animal seems to be the {favoriteAnimal}</p>
+              ) : (
+                <p>
+                  You don&apos;t seem to have mentionned your favorite animal
+                  yet. Go ahead and tell me what your favorite animal is!
+                </p>
+              )}
+
+              <input
+                type="text"
+                value={favoriteAnimalInputVal}
+                onChange={(e) =>
+                  dispatch({
+                    type: actions.FAVORITE_ANIMAL_FIELD_UPDATED,
+                    value: e.target.value,
+                  })
+                }
+                placeholder={`Enter the name of your ${
+                  favoriteAnimal ? "new " : ""
+                }favorite animal`}
+              />
+
+              {formError && <span className="error">{formError}</span>}
+
+              <button
+                className="button"
+                onClick={() => {
+                  !isMining && submitFavoriteAnimal();
+                }}
+                disabled={isMining}
+              >
+                Submit your favorite animal!
+              </button>
+
+              {isMining && (
                 <>
                   <Loading />
-                  <p>Fetching data from the blockchain...</p>
-                </>
-              ) : (
-                <>
                   <p>
-                    Currently {numWaves} people have submitted their favorite
-                    animal
+                    Currently mining your transaction on the Ethereum
+                    blockchain...
                   </p>
-
-                  {favoriteAnimal !== "" ? (
-                    <p>Your favorite animal seems to be the {favoriteAnimal}</p>
-                  ) : (
-                    <p>
-                      You don&apos;t seem to have mentionned your favorite
-                      animal yet. Go ahead and tell me what your favorite animal
-                      is!
-                    </p>
-                  )}
-
-                  <input
-                    type="text"
-                    value={favoriteAnimalInputVal}
-                    onChange={(e) =>
-                      dispatch({
-                        type: actions.FAVORITE_ANIMAL_FIELD_UPDATED,
-                        value: e.target.value,
-                      })
-                    }
-                    placeholder={`Enter the name of your ${
-                      favoriteAnimal ? "new " : ""
-                    }favorite animal`}
-                  />
-
-                  {formError && <span className="error">{formError}</span>}
-
-                  <button
-                    className="button"
-                    onClick={() => {
-                      !isMining && submitFavoriteAnimal();
-                    }}
-                    disabled={isMining}
-                  >
-                    Submit your favorite animal!
-                  </button>
-
-                  {isMining && (
-                    <>
-                      <Loading />
-                      <p>
-                        Currently mining your transaction on the Ethereum
-                        blockchain...
-                      </p>
-                    </>
-                  )}
-
-                  {submitError && <span className="error">{submitError}</span>}
                 </>
               )}
+
+              {submitError && <span className="error">{submitError}</span>}
             </>
           )}
+        </>
 
-          {metamaskError && <span className="error">{metamaskError}</span>}
-        </div>
-
-        {allFavoriteAnimals.length > 0 && (
-          <div id="tableContainer" className="dataContainer card">
-            <FavoiteAnimalTable data={allFavoriteAnimals} />
-          </div>
-        )}
+        {metamaskError && <span className="error">{metamaskError}</span>}
       </div>
+
+      {allFavoriteAnimals.length > 0 && (
+        <div id="tableContainer" className="dataContainer card">
+          <FavoiteAnimalTable data={allFavoriteAnimals} />
+        </div>
+      )}
     </>
   );
 }
