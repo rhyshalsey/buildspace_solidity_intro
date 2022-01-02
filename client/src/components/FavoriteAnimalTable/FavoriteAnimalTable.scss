@@ -1,14 +1,17 @@
-.favoriteAnimalTable th {
-  text-transform: capitalize;
-}
+.favoriteAnimalTable {
+  th {
+    text-transform: capitalize;
+    border-bottom: 1px solid #696969;
+  }
 
-.favoriteAnimalTable th {
-  border-bottom: 1px solid #696969;
-}
+  th,
+  td {
+    padding: 10px;
+    text-align: left;
+    min-width: 150px;
 
-.favoriteAnimalTable th,
-.favoriteAnimalTable td {
-  padding: 10px;
-  text-align: left;
-  min-width: 150px;
+    &.sender {
+      word-break: break-all;
+    }
+  }
 }

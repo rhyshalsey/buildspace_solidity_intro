@@ -3,6 +3,8 @@ const FavoiteAnimalTable = ({ data }) => {
     return null;
   }
 
+  console.log(data);
+
   return (
     <table className="favoriteAnimalTable">
       <thead>
@@ -15,21 +17,24 @@ const FavoiteAnimalTable = ({ data }) => {
       <tbody>
         {data.map((row, index) => (
           <tr key={index}>
-            {Object.values(row).map((value) => (
-              <td key={value}>
-                {value.includes("0x") ? (
-                  <a
-                    href={`https://rinkeby.etherscan.io/address/${value}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {value}
-                  </a>
-                ) : (
-                  value
-                )}
-              </td>
-            ))}
+            {Object.keys(row).map((key) => {
+              const value = row[key];
+              return (
+                <td className={key} key={value}>
+                  {value.includes("0x") ? (
+                    <a
+                      href={`https://rinkeby.etherscan.io/address/${value}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {value}
+                    </a>
+                  ) : (
+                    value
+                  )}
+                </td>
+              );
+            })}
           </tr>
         ))}
       </tbody>
